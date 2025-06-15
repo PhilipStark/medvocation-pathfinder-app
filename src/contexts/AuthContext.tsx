@@ -46,7 +46,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       id: '1',
       email,
       created_at: new Date().toISOString(),
-      user_metadata: { name: 'João Silva' }
+      user_metadata: { name: 'João Silva' },
+      app_metadata: {},
+      aud: 'authenticated',
+      email_confirmed_at: new Date().toISOString(),
+      last_sign_in_at: new Date().toISOString(),
+      role: 'authenticated',
+      updated_at: new Date().toISOString(),
+      confirmation_sent_at: new Date().toISOString()
     } as User);
   };
 
@@ -57,7 +64,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       id: '1',
       email,
       created_at: new Date().toISOString(),
-      user_metadata: userData
+      user_metadata: userData,
+      app_metadata: {},
+      aud: 'authenticated',
+      email_confirmed_at: new Date().toISOString(),
+      last_sign_in_at: new Date().toISOString(),
+      role: 'authenticated',
+      updated_at: new Date().toISOString(),
+      confirmation_sent_at: new Date().toISOString()
     } as User);
   };
 
