@@ -9,7 +9,104 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string | null
+          semester: string | null
+          university: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id: string
+          name?: string | null
+          semester?: string | null
+          university?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string | null
+          semester?: string | null
+          university?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      test_results: {
+        Row: {
+          created_at: string | null
+          id: string
+          recommendations: Json | null
+          session_id: string
+          specialty_scores: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          recommendations?: Json | null
+          session_id: string
+          specialty_scores: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          recommendations?: Json | null
+          session_id?: string
+          specialty_scores?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_results_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "test_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      test_sessions: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          current_module: string | null
+          current_question: number | null
+          id: string
+          responses: Json | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          current_module?: string | null
+          current_question?: number | null
+          id?: string
+          responses?: Json | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          current_module?: string | null
+          current_question?: number | null
+          id?: string
+          responses?: Json | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
