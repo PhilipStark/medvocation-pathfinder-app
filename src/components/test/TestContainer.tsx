@@ -143,6 +143,7 @@ const TestContainer = () => {
       description: "Redirecionando para seus resultados...",
     });
     
+    // Redirect to teaser page instead of full results
     navigate(`/results/${localSessionId}`);
   };
 

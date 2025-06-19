@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sparkles, BookOpenCheck } from "lucide-react";
 import Navbar from '@/components/Navbar';
+import ResultsTeaser from '@/components/test/ResultsTeaser';
 import { supabase } from '@/integrations/supabase/client';
 import { TestResults } from '@/types/test';
 
@@ -13,6 +15,7 @@ const Results = () => {
   const navigate = useNavigate();
   const [results, setResults] = useState<TestResults | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isUnlocked, setIsUnlocked] = useState(false);
 
   useEffect(() => {
     const loadResults = async () => {
@@ -38,6 +41,8 @@ const Results = () => {
               testDuration: 0 // We don't store duration yet
             };
             setResults(testResults);
+            // Check if this result is unlocked (will be implemented in Step 3)
+            setIsUnlocked(false); // For now, all results are locked
             setLoading(false);
             return;
           }
@@ -49,12 +54,14 @@ const Results = () => {
         const localResults = localStorage.getItem(`test_results_${sessionId}`);
         if (localResults) {
           setResults(JSON.parse(localResults));
+          setIsUnlocked(false); // For now, all results are locked
         }
       } else {
         // Load most recent result for current user
         const savedResults = localStorage.getItem('test_results_latest');
         if (savedResults) {
           setResults(JSON.parse(savedResults));
+          setIsUnlocked(false); // For now, all results are locked
         }
       }
       setLoading(false);
@@ -97,62 +104,77 @@ const Results = () => {
 
   const sortedScores = Object.entries(results.scores)
     .sort(([, a], [, b]) => b - a)
-    .slice(0, 3);
+    .slice(0, 5);
+
+  const topSpecialty = sortedScores[0][0];
+  const topScore = sortedScores[0][1];
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Seus Resultados Vocacionais
-          </h1>
-          <p className="text-gray-600">
-            Confira as especialidades que mais combinam com você!
-          </p>
-        </div>
+        {!isUnlocked ? (
+          // Show teaser page when results are not unlocked
+          <ResultsTeaser 
+            topSpecialty={topSpecialty}
+            topScore={topScore}
+            sessionId={sessionId || ''}
+          />
+        ) : (
+          // Show full results when unlocked (existing functionality)
+          <>
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                Seus Resultados Vocacionais
+              </h1>
+              <p className="text-gray-600">
+                Confira as especialidades que mais combinam com você!
+              </p>
+            </div>
 
-        <Card className="medical-card">
-          <CardHeader>
-            <CardTitle>Top 3 Especialidades</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {sortedScores.map(([specialty, score], index) => (
-              <div key={specialty} className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{specialty}</h3>
-                  <p className="text-sm text-gray-600">
-                    Compatibilidade: {Math.round(score)}%
-                  </p>
-                </div>
-                <Badge variant="secondary">#{index + 1}</Badge>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+            <Card className="medical-card">
+              <CardHeader>
+                <CardTitle>Top 5 Especialidades</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {sortedScores.map(([specialty, score], index) => (
+                  <div key={specialty} className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">{specialty}</h3>
+                      <p className="text-sm text-gray-600">
+                        Compatibilidade: {Math.round(score)}%
+                      </p>
+                    </div>
+                    <Badge variant="secondary">#{index + 1}</Badge>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
 
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Recomendação Personalizada
-          </h2>
-          <Card className="medical-card">
-            <CardContent>
-              <div className="text-center">
-                <Sparkles className="h-10 w-10 text-yellow-500 mx-auto mb-4" />
-                <p className="text-gray-700">
-                  Com base nos seus resultados, recomendamos explorar a área de{" "}
-                  <span className="font-semibold">{sortedScores[0][0]}</span>.
-                </p>
-                <Button
-                  onClick={() => navigate('/specialties')}
-                  className="medical-button mt-4"
-                >
-                  Ver Especialidades
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            <div className="mt-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                Recomendação Personalizada
+              </h2>
+              <Card className="medical-card">
+                <CardContent>
+                  <div className="text-center">
+                    <Sparkles className="h-10 w-10 text-yellow-500 mx-auto mb-4" />
+                    <p className="text-gray-700">
+                      Com base nos seus resultados, recomendamos explorar a área de{" "}
+                      <span className="font-semibold">{topSpecialty}</span>.
+                    </p>
+                    <Button
+                      onClick={() => navigate('/specialties')}
+                      className="medical-button mt-4"
+                    >
+                      Ver Especialidades
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
