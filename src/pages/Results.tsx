@@ -32,8 +32,8 @@ const Results = () => {
             const testResults: TestResults = {
               sessionId: data.id,
               userId: data.user_id,
-              responses: data.test_sessions.responses || {},
-              scores: data.specialty_scores,
+              responses: (data.test_sessions.responses as any) || {},
+              scores: data.specialty_scores as Record<string, number>,
               completedAt: data.created_at,
               testDuration: 0 // We don't store duration yet
             };
