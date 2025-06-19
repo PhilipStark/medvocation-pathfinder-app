@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { UniversityCombobox } from '@/components/UniversityCombobox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
@@ -25,21 +26,6 @@ const Register = () => {
   
   const { signUp } = useAuth();
   const navigate = useNavigate();
-
-  const universities = [
-    'Universidade de São Paulo (USP)',
-    'Universidade Federal do Rio de Janeiro (UFRJ)',
-    'Universidade Federal de Minas Gerais (UFMG)',
-    'Universidade Federal do Rio Grande do Sul (UFRGS)',
-    'Universidade Federal de São Paulo (UNIFESP)',
-    'Universidade de Brasília (UnB)',
-    'Universidade Federal da Bahia (UFBA)',
-    'Universidade Federal do Paraná (UFPR)',
-    'Universidade Federal de Santa Catarina (UFSC)',
-    'Universidade Federal do Ceará (UFC)',
-    'Pontifícia Universidade Católica de São Paulo (PUC-SP)',
-    'Outra'
-  ];
 
   const semesters = [
     '1º Período', '2º Período', '3º Período', '4º Período', '5º Período', '6º Período',
@@ -154,16 +140,12 @@ const Register = () => {
 
                 <div>
                   <Label htmlFor="university">Universidade *</Label>
-                  <Select value={formData.university} onValueChange={(value) => handleChange('university', value)} required>
-                    <SelectTrigger className="medical-input">
-                      <SelectValue placeholder="Selecione sua universidade" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {universities.map((uni) => (
-                        <SelectItem key={uni} value={uni}>{uni}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <UniversityCombobox
+                    value={formData.university}
+                    onValueChange={(value) => handleChange('university', value)}
+                    placeholder="Selecione ou digite sua universidade"
+                    className="medical-input"
+                  />
                 </div>
 
                 <div>

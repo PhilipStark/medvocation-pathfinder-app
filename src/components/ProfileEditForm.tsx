@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { UniversityCombobox } from '@/components/UniversityCombobox';
 import { Edit2, Save, X } from 'lucide-react';
 
 interface ProfileData {
@@ -91,24 +92,12 @@ const ProfileEditForm = ({ profile, onSave, updating }: ProfileEditFormProps) =>
         
         <div>
           <Label htmlFor="university">Universidade</Label>
-          <Select 
-            value={formData.university} 
+          <UniversityCombobox
+            value={formData.university || ''}
             onValueChange={(value) => setFormData(prev => ({ ...prev, university: value }))}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione sua universidade" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Universidade de São Paulo">USP - Universidade de São Paulo</SelectItem>
-              <SelectItem value="Universidade Federal do Rio de Janeiro">UFRJ - Universidade Federal do Rio de Janeiro</SelectItem>
-              <SelectItem value="Universidade Federal de Minas Gerais">UFMG - Universidade Federal de Minas Gerais</SelectItem>
-              <SelectItem value="Universidade Federal de São Paulo">UNIFESP - Universidade Federal de São Paulo</SelectItem>
-              <SelectItem value="Universidade Federal do Rio Grande do Sul">UFRGS - Universidade Federal do Rio Grande do Sul</SelectItem>
-              <SelectItem value="Universidade Federal de Santa Catarina">UFSC - Universidade Federal de Santa Catarina</SelectItem>
-              <SelectItem value="Universidade Federal do Paraná">UFPR - Universidade Federal do Paraná</SelectItem>
-              <SelectItem value="Outra">Outra</SelectItem>
-            </SelectContent>
-          </Select>
+            placeholder="Selecione ou digite sua universidade"
+            className="medical-input"
+          />
         </div>
 
         <div>
