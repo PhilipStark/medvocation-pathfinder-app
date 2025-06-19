@@ -35,7 +35,7 @@ const TestContainer = () => {
     isLastQuestion
   } = useTestNavigation();
 
-  const { saveProgress, clearProgress } = useTestProgress(user?.id);
+  const { saveProgress, clearProgress, saveTestResults } = useTestProgress();
 
   const [responses, setResponses] = useState<TestResponses>({});
   const [startTime] = useState(Date.now());
@@ -108,7 +108,7 @@ const TestContainer = () => {
     setShowValidation(false);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const validation = validateTestResponses(responses);
     
     if (!validation.isComplete) {
@@ -121,16 +121,20 @@ const TestContainer = () => {
     }
 
     const results = calculateResults(responses);
-    const sessionId = Date.now().toString();
+    const testDuration = Math.round((Date.now() - startTime) / 1000 / 60);
     
-    // Save results to localStorage
-    localStorage.setItem(`test_results_${sessionId}`, JSON.stringify({
-      sessionId,
+    // Save results to Supabase (if user is logged in)
+    const sessionId = await saveTestResults(responses, results, testDuration);
+    
+    // Also save to localStorage as backup
+    const localSessionId = sessionId || Date.now().toString();
+    localStorage.setItem(`test_results_${localSessionId}`, JSON.stringify({
+      sessionId: localSessionId,
       userId: user?.id,
       responses,
       scores: results,
       completedAt: new Date().toISOString(),
-      testDuration: Math.round((Date.now() - startTime) / 1000 / 60)
+      testDuration
     }));
 
     clearProgress();
@@ -139,11 +143,11 @@ const TestContainer = () => {
       description: "Redirecionando para seus resultados...",
     });
     
-    navigate(`/results/${sessionId}`);
+    navigate(`/results/${localSessionId}`);
   };
 
-  const handleSaveAndExit = () => {
-    const sessionId = saveProgress(currentModule, currentQuestion, responses);
+  const handleSaveAndExit = async () => {
+    const sessionId = await saveProgress(currentModule, currentQuestion, responses);
     
     toast({
       title: "Progresso salvo!",

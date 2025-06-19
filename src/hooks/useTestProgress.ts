@@ -58,7 +58,7 @@ export const useTestProgress = () => {
           .update({
             current_module: currentModule,
             current_question: currentQuestion,
-            responses: responses,
+            responses: responses as any,
             updated_at: new Date().toISOString()
           })
           .eq('id', sessionId);
@@ -71,7 +71,7 @@ export const useTestProgress = () => {
             status: 'in_progress',
             current_module: currentModule,
             current_question: currentQuestion,
-            responses: responses
+            responses: responses as any
           })
           .select()
           .single();
@@ -94,7 +94,18 @@ export const useTestProgress = () => {
     } catch (error) {
       console.error('Error saving progress to Supabase:', error);
       // Fallback to localStorage
-      return saveProgress(currentModule, currentQuestion, responses);
+      const sessionId = Date.now().toString();
+      const data: TestProgressData = {
+        sessionId,
+        currentModule,
+        currentQuestion,
+        responses,
+        savedAt: new Date().toISOString()
+      };
+      
+      localStorage.setItem('test_progress_guest', JSON.stringify(data));
+      setProgressData(data);
+      return sessionId;
     }
   };
 
@@ -130,7 +141,7 @@ export const useTestProgress = () => {
           userId: session.user_id,
           currentModule: session.current_module || '',
           currentQuestion: session.current_question || 0,
-          responses: session.responses || {},
+          responses: session.responses as TestResponses || {},
           savedAt: session.updated_at
         };
         setProgressData(data);
@@ -164,6 +175,70 @@ export const useTestProgress = () => {
     }
   };
 
+  const saveTestResults = async (
+    responses: TestResponses,
+    scores: Record<string, number>,
+    testDuration: number
+  ) => {
+    if (!user) {
+      console.log('No user logged in, cannot save results to database');
+      return null;
+    }
+
+    try {
+      // First, get or create a test session
+      let sessionId = progressData?.sessionId;
+      
+      if (!sessionId) {
+        // Create a new session if one doesn't exist
+        const { data: newSession } = await supabase
+          .from('test_sessions')
+          .insert({
+            user_id: user.id,
+            status: 'completed',
+            responses: responses as any,
+            completed_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+        
+        sessionId = newSession?.id;
+      } else {
+        // Update existing session to mark as completed
+        await supabase
+          .from('test_sessions')
+          .update({
+            status: 'completed',
+            responses: responses as any,
+            completed_at: new Date().toISOString()
+          })
+          .eq('id', sessionId);
+      }
+
+      if (!sessionId) {
+        throw new Error('Failed to create or update test session');
+      }
+
+      // Save the test results
+      const { data: results } = await supabase
+        .from('test_results')
+        .insert({
+          session_id: sessionId,
+          user_id: user.id,
+          specialty_scores: scores as any,
+          recommendations: null // Can be enhanced later with AI recommendations
+        })
+        .select()
+        .single();
+
+      console.log('Test results saved to Supabase:', results?.id);
+      return sessionId;
+    } catch (error) {
+      console.error('Error saving test results to Supabase:', error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     if (user) {
       loadProgress();
@@ -174,6 +249,7 @@ export const useTestProgress = () => {
     progressData,
     saveProgress,
     loadProgress,
-    clearProgress
+    clearProgress,
+    saveTestResults
   };
 };
