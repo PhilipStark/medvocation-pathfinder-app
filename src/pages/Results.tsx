@@ -41,8 +41,8 @@ const Results = () => {
               testDuration: 0 // We don't store duration yet
             };
             setResults(testResults);
-            // Check if this result is unlocked (will be implemented in Step 3)
-            setIsUnlocked(false); // For now, all results are locked
+            // Use the real is_unlocked value from database
+            setIsUnlocked(data.is_unlocked || false);
             setLoading(false);
             return;
           }
@@ -54,14 +54,16 @@ const Results = () => {
         const localResults = localStorage.getItem(`test_results_${sessionId}`);
         if (localResults) {
           setResults(JSON.parse(localResults));
-          setIsUnlocked(false); // For now, all results are locked
+          // For localStorage results, default to locked (false)
+          setIsUnlocked(false);
         }
       } else {
         // Load most recent result for current user
         const savedResults = localStorage.getItem('test_results_latest');
         if (savedResults) {
           setResults(JSON.parse(savedResults));
-          setIsUnlocked(false); // For now, all results are locked
+          // For localStorage results, default to locked (false)
+          setIsUnlocked(false);
         }
       }
       setLoading(false);
@@ -121,7 +123,7 @@ const Results = () => {
             sessionId={sessionId || ''}
           />
         ) : (
-          // Show full results when unlocked (existing functionality)
+          // Show full results when unlocked
           <>
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-gray-900 mb-4">
