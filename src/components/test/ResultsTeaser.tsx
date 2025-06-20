@@ -1,10 +1,12 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Lock, CheckCircle } from "lucide-react";
+import { Sparkles, Lock, CheckCircle, Loader2 } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface ResultsTeaserProps {
   topSpecialty: string;
@@ -14,6 +16,8 @@ interface ResultsTeaserProps {
 
 const ResultsTeaser = ({ topSpecialty, topScore, sessionId }: ResultsTeaserProps) => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const premiumFeatures = [
     "Top 5 Specialty Analysis with percentages",
@@ -23,6 +27,43 @@ const ResultsTeaser = ({ topSpecialty, topScore, sessionId }: ResultsTeaserProps
     "Personalized Career Roadmap timeline",
     "Professional PDF Report for Download"
   ];
+
+  const handleUnlockReport = async () => {
+    setIsProcessing(true);
+    
+    try {
+      // Create payment session
+      const { data, error } = await supabase.functions.invoke('create-payment', {
+        body: { sessionId }
+      });
+
+      if (error) {
+        console.error('Error creating payment session:', error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível iniciar o pagamento. Tente novamente.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Store checkout session ID for verification
+      localStorage.setItem(`checkout_session_${sessionId}`, data.checkoutSessionId);
+      
+      // Redirect to Stripe Checkout
+      window.location.href = data.url;
+      
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro inesperado. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -69,9 +110,17 @@ const ResultsTeaser = ({ topSpecialty, topScore, sessionId }: ResultsTeaserProps
             <Button 
               size="lg" 
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg"
-              onClick={() => navigate('/pricing')}
+              onClick={handleUnlockReport}
+              disabled={isProcessing}
             >
-              Desbloquear Relatório Completo por R$ 39,90
+              {isProcessing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processando...
+                </>
+              ) : (
+                "Desbloquear Relatório Completo por R$ 39,90"
+              )}
             </Button>
           </div>
           

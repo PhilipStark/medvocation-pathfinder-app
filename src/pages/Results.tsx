@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useToast } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,7 @@ import { TestResults } from '@/types/test';
 const Results = () => {
   const { sessionId } = useParams<{ sessionId?: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [results, setResults] = useState<TestResults | null>(null);
   const [loading, setLoading] = useState(true);
   const [isUnlocked, setIsUnlocked] = useState(false);
@@ -20,6 +20,48 @@ const Results = () => {
   useEffect(() => {
     const loadResults = async () => {
       if (sessionId) {
+        // Check if returning from payment
+        const urlParams = new URLSearchParams(window.location.search);
+        const paymentStatus = urlParams.get('payment');
+        
+        if (paymentStatus === 'success') {
+          // Verify payment and unlock results
+          const checkoutSessionId = localStorage.getItem(`checkout_session_${sessionId}`);
+          if (checkoutSessionId) {
+            try {
+              const { data, error } = await supabase.functions.invoke('verify-payment', {
+                body: { checkoutSessionId, sessionId }
+              });
+              
+              if (error || !data.success) {
+                toast({
+                  title: "Erro na verificação",
+                  description: "Não foi possível verificar o pagamento. Entre em contato conosco.",
+                  variant: "destructive"
+                });
+              } else {
+                toast({
+                  title: "Pagamento confirmado!",
+                  description: "Seu relatório foi desbloqueado com sucesso.",
+                });
+                // Clean up
+                localStorage.removeItem(`checkout_session_${sessionId}`);
+                // Remove payment params from URL
+                window.history.replaceState({}, '', `/results/${sessionId}`);
+              }
+            } catch (error) {
+              console.error('Error verifying payment:', error);
+            }
+          }
+        } else if (paymentStatus === 'cancelled') {
+          toast({
+            title: "Pagamento cancelado",
+            description: "Você pode tentar novamente quando quiser.",
+          });
+          // Remove payment params from URL
+          window.history.replaceState({}, '', `/results/${sessionId}`);
+        }
+
         // Try to load from Supabase first, then localStorage
         try {
           const { data } = await supabase
@@ -70,7 +112,7 @@ const Results = () => {
     };
 
     loadResults();
-  }, [sessionId]);
+  }, [sessionId, toast]);
 
   if (loading) {
     return (
