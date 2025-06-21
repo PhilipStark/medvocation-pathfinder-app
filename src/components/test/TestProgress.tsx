@@ -1,6 +1,6 @@
 
 import { Progress } from '@/components/ui/progress';
-import { testModules } from '@/data/testModules';
+import { Clock, CheckCircle } from 'lucide-react';
 
 interface TestProgressProps {
   answeredQuestions: number;
@@ -8,30 +8,29 @@ interface TestProgressProps {
 }
 
 const TestProgress = ({ answeredQuestions, estimatedTimeRemaining }: TestProgressProps) => {
-  const totalQuestions = Object.values(testModules).reduce((acc, module) => acc + module.questions.length, 0);
-  const progress = (answeredQuestions / totalQuestions) * 100;
+  const totalQuestions = 90;
+  const progressPercentage = (answeredQuestions / totalQuestions) * 100;
 
   return (
-    <div className="mb-8">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Teste Vocacional</h1>
-          <p className="text-gray-600">
-            Questão {answeredQuestions + 1} de {totalQuestions}
-          </p>
-        </div>
-        <div className="text-right">
-          <div className="text-sm text-gray-600">Tempo estimado restante</div>
-          <div className="text-lg font-semibold text-medical-blue">
-            {estimatedTimeRemaining} min
-          </div>
-        </div>
+    <div className="mb-6 p-4 bg-white rounded-lg shadow-sm border">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-medium text-gray-700">Progresso do Teste</h3>
+        <span className="text-sm text-gray-500">
+          {answeredQuestions} de {totalQuestions} perguntas
+        </span>
       </div>
       
-      <Progress value={progress} className="h-3 mb-2" />
-      <div className="flex justify-between text-sm text-gray-600">
-        <span>{Math.round(progress)}% concluído</span>
-        <span>{totalQuestions - answeredQuestions} questões restantes</span>
+      <Progress value={progressPercentage} className="mb-3" />
+      
+      <div className="flex items-center justify-between text-xs text-gray-500">
+        <div className="flex items-center gap-1">
+          <CheckCircle className="h-3 w-3" />
+          <span>{Math.round(progressPercentage)}% concluído</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <Clock className="h-3 w-3" />
+          <span>~{estimatedTimeRemaining} min restantes</span>
+        </div>
       </div>
     </div>
   );

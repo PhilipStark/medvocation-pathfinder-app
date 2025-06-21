@@ -1,12 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Sparkles, BookOpenCheck } from "lucide-react";
+import { BookOpenCheck, Download, Share2 } from "lucide-react";
 import Navbar from '@/components/Navbar';
 import ResultsTeaser from '@/components/test/ResultsTeaser';
+import DetailedResults from '@/components/test/DetailedResults';
 import { supabase } from '@/integrations/supabase/client';
 import { TestResults } from '@/types/test';
 
@@ -45,6 +45,7 @@ const Results = () => {
                   title: "Pagamento confirmado!",
                   description: "Seu relatório foi desbloqueado com sucesso.",
                 });
+                setIsUnlocked(true);
                 // Clean up
                 localStorage.removeItem(`checkout_session_${sessionId}`);
                 // Remove payment params from URL
@@ -71,17 +72,17 @@ const Results = () => {
               *,
               test_sessions!inner(*)
             `)
-            .eq('id', sessionId)
+            .eq('session_id', sessionId)
             .single();
 
           if (data) {
             const testResults: TestResults = {
-              sessionId: data.id,
+              sessionId: data.session_id,
               userId: data.user_id,
               responses: (data.test_sessions.responses as any) || {},
               scores: data.specialty_scores as Record<string, number>,
               completedAt: data.created_at,
-              testDuration: 0 // We don't store duration yet
+              testDuration: 0
             };
             setResults(testResults);
             // Use the real is_unlocked value from database
@@ -114,6 +115,30 @@ const Results = () => {
 
     loadResults();
   }, [sessionId, toast]);
+
+  const handleDownloadPDF = () => {
+    toast({
+      title: "Download iniciado",
+      description: "Seu relatório PDF será baixado em breve.",
+    });
+    // TODO: Implement PDF generation
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'Meu Teste Vocacional Médico',
+        text: 'Confira os resultados do meu teste vocacional!',
+        url: window.location.href
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "Link copiado!",
+        description: "O link foi copiado para a área de transferência.",
+      });
+    }
+  };
 
   if (loading) {
     return (
@@ -166,57 +191,43 @@ const Results = () => {
             sessionId={sessionId || ''}
           />
         ) : (
-          // Show full results when unlocked
+          // Show full detailed results when unlocked
           <>
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                Seus Resultados Vocacionais
-              </h1>
-              <p className="text-gray-600">
-                Confira as especialidades que mais combinam com você!
-              </p>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                    Seu Relatório Vocacional Completo
+                  </h1>
+                  <p className="text-gray-600">
+                    Análise detalhada baseada em 90 perguntas sobre personalidade, interesses, estilo de vida e valores
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <Button variant="outline" onClick={handleShare} className="flex items-center gap-2">
+                    <Share2 className="h-4 w-4" />
+                    Compartilhar
+                  </Button>
+                  <Button onClick={handleDownloadPDF} className="medical-button flex items-center gap-2">
+                    <Download className="h-4 w-4" />
+                    Download PDF
+                  </Button>
+                </div>
+              </div>
             </div>
 
-            <Card className="medical-card">
-              <CardHeader>
-                <CardTitle>Top 5 Especialidades</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {sortedScores.map(([specialty, score], index) => (
-                  <div key={specialty} className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{specialty}</h3>
-                      <p className="text-sm text-gray-600">
-                        Compatibilidade: {Math.round(score)}%
-                      </p>
-                    </div>
-                    <Badge variant="secondary">#{index + 1}</Badge>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+            <DetailedResults 
+              responses={results.responses}
+              scores={results.scores}
+            />
 
-            <div className="mt-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Recomendação Personalizada
-              </h2>
-              <Card className="medical-card">
-                <CardContent>
-                  <div className="text-center">
-                    <Sparkles className="h-10 w-10 text-yellow-500 mx-auto mb-4" />
-                    <p className="text-gray-700">
-                      Com base nos seus resultados, recomendamos explorar a área de{" "}
-                      <span className="font-semibold">{topSpecialty}</span>.
-                    </p>
-                    <Button
-                      onClick={() => navigate('/specialties')}
-                      className="medical-button mt-4"
-                    >
-                      Ver Especialidades
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+            <div className="mt-8 text-center">
+              <Button
+                onClick={() => navigate('/specialties')}
+                className="medical-button"
+              >
+                Explorar Todas as Especialidades
+              </Button>
             </div>
           </>
         )}
