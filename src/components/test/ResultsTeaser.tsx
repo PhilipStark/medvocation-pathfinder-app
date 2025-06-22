@@ -34,13 +34,15 @@ const ResultsTeaser = ({ topSpecialty, topScore, sessionId }: ResultsTeaserProps
     setIsProcessing(true);
     
     try {
-      // Create payment session
-      const { data, error } = await supabase.functions.invoke('create-payment', {
-        body: { sessionId, planId: selectedPlan }
+      console.log('Creating checkout session for sessionId:', sessionId);
+
+      // Create checkout session using the new Edge Function
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: { test_result_id: sessionId }
       });
 
       if (error) {
-        console.error('Error creating payment session:', error);
+        console.error('Error creating checkout session:', error);
         toast({
           title: "Erro",
           description: "Não foi possível iniciar o pagamento. Tente novamente.",
@@ -49,8 +51,7 @@ const ResultsTeaser = ({ topSpecialty, topScore, sessionId }: ResultsTeaserProps
         return;
       }
 
-      // Store checkout session ID for verification
-      localStorage.setItem(`checkout_session_${sessionId}`, data.checkoutSessionId);
+      console.log('Checkout session created, redirecting to:', data.url);
       
       // Redirect to Stripe Checkout
       window.location.href = data.url;
@@ -144,6 +145,11 @@ const ResultsTeaser = ({ topSpecialty, topScore, sessionId }: ResultsTeaserProps
               </ul>
             </div>
             
+            <div className="text-center mb-4">
+              <div className="text-3xl font-bold text-medical-blue">R$ 39,90</div>
+              <p className="text-gray-600">Pagamento único</p>
+            </div>
+            
             <Button 
               size="lg" 
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg"
@@ -156,7 +162,7 @@ const ResultsTeaser = ({ topSpecialty, topScore, sessionId }: ResultsTeaserProps
                   Processando...
                 </>
               ) : (
-                "Ver Planos e Desbloquear"
+                "Desbloquear Relatório - R$ 39,90"
               )}
             </Button>
           </CardContent>

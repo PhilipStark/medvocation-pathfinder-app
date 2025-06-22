@@ -36,7 +36,18 @@ export const usePaymentPlans = () => {
         return;
       }
 
-      setPlans(data || []);
+      // Transform the data to match our interface
+      const transformedPlans: PaymentPlan[] = (data || []).map(plan => ({
+        id: plan.id,
+        name: plan.name,
+        description: plan.description || '',
+        price_cents: plan.price_cents,
+        currency: plan.currency || 'BRL',
+        features: Array.isArray(plan.features) ? plan.features : [],
+        is_active: plan.is_active || false
+      }));
+
+      setPlans(transformedPlans);
     } catch (error) {
       console.error('Error fetching payment plans:', error);
     } finally {
