@@ -1,87 +1,12 @@
-
 import { testModules } from '@/data/testModules';
 import { specialties } from '@/data/specialties';
 import { TestResponses } from '@/types/test';
 import { normalizeScores } from './testValidation';
+import { calculateImprovedResults } from './improvedTestCalculations';
 
 export const calculateResults = (responses: TestResponses) => {
-  const scores: Record<string, number> = {};
-  
-  // Pesos ajustados para cada módulo baseado na importância para escolha vocacional
-  const moduleWeights: Record<string, number> = {
-    personality: 1.0,    // Base: características fundamentais
-    interests: 1.3,      // Maior peso: área de interesse é crucial
-    lifestyle: 1.1,      // Importante: compatibilidade com estilo de vida
-    values: 1.2          // Muito importante: motivações e valores pessoais
-  };
-  
-  // Initialize scores para todas as especialidades
-  const allSpecialties = [
-    'emergency', 'surgery', 'cardiology', 'anesthesiology', 'psychiatry',
-    'dermatology', 'radiology', 'pathology', 'pediatrics', 'family_medicine',
-    'internal_medicine', 'orthopedics', 'neurology', 'oncology'
-  ];
-  
-  allSpecialties.forEach(specialty => {
-    scores[specialty] = 0;
-  });
-
-  // Calculate weighted scores by module
-  Object.entries(testModules).forEach(([moduleKey, module]) => {
-    const moduleWeight = moduleWeights[moduleKey] || 1.0;
-    
-    module.questions.forEach(question => {
-      const response = responses[question.id];
-      if (response !== undefined) {
-        Object.entries(question.weights).forEach(([specialtyId, weight]) => {
-          if (scores[specialtyId] !== undefined) {
-            // Convert 1-5 scale to 0-1, apply weights and module importance
-            const normalizedResponse = (response - 1) / 4;
-            
-            // Ajuste na fórmula para dar mais variação nos resultados
-            const contributionScore = normalizedResponse * weight * moduleWeight;
-            scores[specialtyId] += contributionScore * 100; // Escala para 0-100
-          }
-        });
-      }
-    });
-  });
-
-  // Normalize scores to 0-100 range
-  const maxScore = Math.max(...Object.values(scores));
-  const minScore = Math.min(...Object.values(scores));
-  const range = maxScore - minScore;
-  
-  const normalizedScores: Record<string, number> = {};
-  
-  if (range > 0) {
-    Object.entries(scores).forEach(([specialtyId, score]) => {
-      // Normalização melhorada para garantir variação significativa
-      const normalizedScore = ((score - minScore) / range) * 85 + 15; // Range 15-100
-      normalizedScores[specialtyId] = Math.round(normalizedScore);
-    });
-  } else {
-    // Se todos os scores são iguais, distribute equally
-    Object.keys(scores).forEach(specialtyId => {
-      normalizedScores[specialtyId] = 50;
-    });
-  }
-
-  // Ensure minimum meaningful differences between specialties
-  const sortedEntries = Object.entries(normalizedScores).sort(([,a], [,b]) => b - a);
-  
-  // Adjust scores to ensure clear hierarchy
-  sortedEntries.forEach(([specialtyId, score], index) => {
-    if (index === 0) {
-      // Top specialty gets boost
-      normalizedScores[specialtyId] = Math.min(100, score + 5);
-    } else if (index <= 2) {
-      // Top 3 get slight adjustment
-      normalizedScores[specialtyId] = Math.max(15, score - index);
-    }
-  });
-
-  return normalizedScores;
+  // Use the improved calculation algorithm
+  return calculateImprovedResults(responses);
 };
 
 export const getTopSpecialties = (scores: Record<string, number>, limit: number = 8) => {

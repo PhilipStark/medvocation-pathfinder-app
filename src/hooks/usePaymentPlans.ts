@@ -43,7 +43,7 @@ export const usePaymentPlans = () => {
         description: plan.description || '',
         price_cents: plan.price_cents,
         currency: plan.currency || 'BRL',
-        features: Array.isArray(plan.features) ? plan.features : [],
+        features: Array.isArray(plan.features) ? plan.features.filter((f): f is string => typeof f === 'string') : [],
         is_active: plan.is_active || false
       }));
 

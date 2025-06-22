@@ -1,8 +1,6 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { 
   TrendingUp, 
   Target, 
@@ -10,14 +8,13 @@ import {
   Users, 
   Lightbulb,
   CheckCircle,
-  Star,
-  Download
+  Star
 } from 'lucide-react';
 import { TestResponses } from '@/types/test';
 import { getTopSpecialties, getDetailedAnalysis } from '@/utils/testCalculations';
 import { specialtyDetails } from '@/data/specialtyDetails';
-import { usePDFDownload } from '@/hooks/usePDFDownload';
 import SpecialtyCard from './SpecialtyCard';
+import PDFDownloadButton from '../PDFDownloadButton';
 
 interface DetailedResultsProps {
   responses: TestResponses;
@@ -28,11 +25,6 @@ interface DetailedResultsProps {
 const DetailedResults = ({ responses, scores, sessionId }: DetailedResultsProps) => {
   const topSpecialties = getTopSpecialties(scores, 8);
   const analysis = getDetailedAnalysis(responses, topSpecialties);
-  const { downloadPDF, isGenerating } = usePDFDownload();
-
-  const handleDownloadPDF = () => {
-    downloadPDF(sessionId, { responses, scores, analysis });
-  };
 
   return (
     <div className="space-y-6">
@@ -59,18 +51,11 @@ const DetailedResults = ({ responses, scores, sessionId }: DetailedResultsProps)
               <div className="text-sm opacity-90">Especialidades Analisadas</div>
             </div>
             <div className="text-center">
-              <Button 
-                onClick={handleDownloadPDF}
-                disabled={isGenerating}
-                className="bg-white text-medical-blue hover:bg-gray-100 flex items-center gap-2"
-              >
-                {isGenerating ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-medical-blue"></div>
-                ) : (
-                  <Download className="h-4 w-4" />
-                )}
-                Download PDF
-              </Button>
+              <PDFDownloadButton 
+                responses={responses}
+                scores={scores}
+                sessionId={sessionId}
+              />
             </div>
           </div>
         </CardContent>
