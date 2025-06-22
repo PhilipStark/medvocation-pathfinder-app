@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      payment_plans: {
+        Row: {
+          created_at: string | null
+          currency: string | null
+          description: string | null
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          name: string
+          price_cents: number
+        }
+        Insert: {
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          price_cents: number
+        }
+        Update: {
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          price_cents?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -36,11 +69,45 @@ export type Database = {
         }
         Relationships: []
       }
+      result_downloads: {
+        Row: {
+          downloaded_at: string | null
+          file_type: string | null
+          id: string
+          test_result_id: string | null
+          user_id: string
+        }
+        Insert: {
+          downloaded_at?: string | null
+          file_type?: string | null
+          id?: string
+          test_result_id?: string | null
+          user_id: string
+        }
+        Update: {
+          downloaded_at?: string | null
+          file_type?: string | null
+          id?: string
+          test_result_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "result_downloads_test_result_id_fkey"
+            columns: ["test_result_id"]
+            isOneToOne: false
+            referencedRelation: "test_results"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       test_results: {
         Row: {
           created_at: string | null
+          download_count: number | null
           id: string
           is_unlocked: boolean
+          pdf_generated_at: string | null
           recommendations: Json | null
           session_id: string
           specialty_scores: Json
@@ -48,8 +115,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          download_count?: number | null
           id?: string
           is_unlocked?: boolean
+          pdf_generated_at?: string | null
           recommendations?: Json | null
           session_id: string
           specialty_scores: Json
@@ -57,8 +126,10 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          download_count?: number | null
           id?: string
           is_unlocked?: boolean
+          pdf_generated_at?: string | null
           recommendations?: Json | null
           session_id?: string
           specialty_scores?: Json

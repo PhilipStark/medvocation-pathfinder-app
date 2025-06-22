@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from "@/components/ui/button";
-import { BookOpenCheck, Download, Share2 } from "lucide-react";
+import { BookOpenCheck, Share2 } from "lucide-react";
 import Navbar from '@/components/Navbar';
 import ResultsTeaser from '@/components/test/ResultsTeaser';
 import DetailedResults from '@/components/test/DetailedResults';
@@ -116,14 +116,6 @@ const Results = () => {
     loadResults();
   }, [sessionId, toast]);
 
-  const handleDownloadPDF = () => {
-    toast({
-      title: "Download iniciado",
-      description: "Seu relatório PDF será baixado em breve.",
-    });
-    // TODO: Implement PDF generation
-  };
-
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
@@ -182,7 +174,7 @@ const Results = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {!isUnlocked ? (
           // Show teaser page when results are not unlocked
           <ResultsTeaser 
@@ -208,10 +200,6 @@ const Results = () => {
                     <Share2 className="h-4 w-4" />
                     Compartilhar
                   </Button>
-                  <Button onClick={handleDownloadPDF} className="medical-button flex items-center gap-2">
-                    <Download className="h-4 w-4" />
-                    Download PDF
-                  </Button>
                 </div>
               </div>
             </div>
@@ -219,6 +207,7 @@ const Results = () => {
             <DetailedResults 
               responses={results.responses}
               scores={results.scores}
+              sessionId={sessionId || ''}
             />
 
             <div className="mt-8 text-center">

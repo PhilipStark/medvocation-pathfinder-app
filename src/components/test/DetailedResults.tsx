@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
 import { 
   TrendingUp, 
   Target, 
@@ -10,91 +10,93 @@ import {
   Users, 
   Lightbulb,
   CheckCircle,
-  Star
+  Star,
+  Download
 } from 'lucide-react';
 import { TestResponses } from '@/types/test';
-import { getTopSpecialties, getScoreInterpretation, getDetailedAnalysis } from '@/utils/testCalculations';
+import { getTopSpecialties, getDetailedAnalysis } from '@/utils/testCalculations';
+import { specialtyDetails } from '@/data/specialtyDetails';
+import { usePDFDownload } from '@/hooks/usePDFDownload';
+import SpecialtyCard from './SpecialtyCard';
 
 interface DetailedResultsProps {
   responses: TestResponses;
   scores: Record<string, number>;
+  sessionId: string;
 }
 
-const DetailedResults = ({ responses, scores }: DetailedResultsProps) => {
+const DetailedResults = ({ responses, scores, sessionId }: DetailedResultsProps) => {
   const topSpecialties = getTopSpecialties(scores, 8);
   const analysis = getDetailedAnalysis(responses, topSpecialties);
+  const { downloadPDF, isGenerating } = usePDFDownload();
+
+  const handleDownloadPDF = () => {
+    downloadPDF(sessionId, { responses, scores, analysis });
+  };
 
   return (
     <div className="space-y-6">
       {/* Header com estatísticas gerais */}
-      <Card className="medical-card">
+      <Card className="medical-card bg-gradient-to-r from-medical-blue to-blue-600 text-white">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-6 w-6 text-medical-blue" />
+          <CardTitle className="flex items-center gap-2 text-white">
+            <TrendingUp className="h-6 w-6" />
             Resumo da Análise Vocacional
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center">
-              <div className="text-3xl font-bold text-medical-blue">90</div>
-              <div className="text-sm text-gray-600">Perguntas Respondidas</div>
+              <div className="text-3xl font-bold">90</div>
+              <div className="text-sm opacity-90">Perguntas Respondidas</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-medical-green">{topSpecialties[0]?.score}%</div>
-              <div className="text-sm text-gray-600">Maior Compatibilidade</div>
+              <div className="text-3xl font-bold">{topSpecialties[0]?.score}%</div>
+              <div className="text-sm opacity-90">Maior Compatibilidade</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-medical-gold">{topSpecialties.length}</div>
-              <div className="text-sm text-gray-600">Especialidades Analisadas</div>
+              <div className="text-3xl font-bold">{topSpecialties.length}</div>
+              <div className="text-sm opacity-90">Especialidades Analisadas</div>
+            </div>
+            <div className="text-center">
+              <Button 
+                onClick={handleDownloadPDF}
+                disabled={isGenerating}
+                className="bg-white text-medical-blue hover:bg-gray-100 flex items-center gap-2"
+              >
+                {isGenerating ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-medical-blue"></div>
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                Download PDF
+              </Button>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Top Especialidades com detalhes */}
-      <Card className="medical-card">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Star className="h-6 w-6 text-medical-gold" />
-            Suas Principais Especialidades
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {topSpecialties.slice(0, 5).map((item, index) => {
-            const interpretation = getScoreInterpretation(item.score);
-            return (
-              <div key={item.specialty.id} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-medical-blue text-white font-bold">
-                      {index + 1}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-lg">{item.specialty.name}</h3>
-                      <p className="text-sm text-gray-600">{item.specialty.category}</p>
-                    </div>
-                  </div>
-                  <Badge className={`${interpretation.bg} ${interpretation.color} border-0`}>
-                    {item.score}%
-                  </Badge>
-                </div>
-                
-                <Progress value={item.score} className="mb-2" />
-                
-                <div className={`p-3 rounded-md ${interpretation.bg}`}>
-                  <p className={`text-sm font-medium ${interpretation.color}`}>
-                    {interpretation.level}
-                  </p>
-                  <p className="text-xs text-gray-600 mt-1">
-                    {interpretation.description}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </CardContent>
-      </Card>
+      {/* Top Especialidades com detalhes visuais */}
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <Star className="h-6 w-6 text-medical-gold" />
+          Suas Principais Especialidades
+        </h2>
+        
+        {topSpecialties.slice(0, 5).map((item, index) => {
+          const specialtyDetail = specialtyDetails[item.specialty.id];
+          if (!specialtyDetail) return null;
+          
+          return (
+            <SpecialtyCard
+              key={item.specialty.id}
+              specialty={specialtyDetail}
+              score={item.score}
+              rank={index + 1}
+            />
+          );
+        })}
+      </div>
 
       {/* Insights de Personalidade */}
       <Card className="medical-card">
@@ -166,15 +168,17 @@ const DetailedResults = ({ responses, scores }: DetailedResultsProps) => {
         <CardContent>
           <div className="space-y-2">
             {topSpecialties.map((item, index) => (
-              <div key={item.specialty.id} className="flex items-center justify-between p-2 rounded hover:bg-gray-50">
+              <div key={item.specialty.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 border border-gray-100">
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-gray-500">#{index + 1}</span>
-                  <span className="font-medium">{item.specialty.name}</span>
-                  <Badge variant="outline" className="text-xs">
-                    {item.specialty.category}
-                  </Badge>
+                  <span className="text-sm font-medium text-gray-500 w-8">#{index + 1}</span>
+                  <div>
+                    <span className="font-medium">{item.specialty.name}</span>
+                    <Badge variant="outline" className="text-xs ml-2">
+                      {item.specialty.category}
+                    </Badge>
+                  </div>
                 </div>
-                <span className="font-semibold text-medical-blue">{item.score}%</span>
+                <span className="font-semibold text-medical-blue text-lg">{item.score}%</span>
               </div>
             ))}
           </div>
