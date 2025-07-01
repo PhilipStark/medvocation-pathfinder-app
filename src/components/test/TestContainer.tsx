@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -42,6 +41,7 @@ const TestContainer = () => {
   const [showReview, setShowReview] = useState(false);
   const [showValidation, setShowValidation] = useState(false);
   const [estimatedTimeRemaining, setEstimatedTimeRemaining] = useState(25);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const totalQuestions = Object.values(testModules).reduce((acc, module) => acc + module.questions.length, 0);
   const answeredQuestions = Object.keys(responses).length;
@@ -83,6 +83,16 @@ const TestContainer = () => {
       [currentQuestionData.id]: value
     }));
     setShowValidation(false);
+    
+    // Auto-advance to next question after a short delay
+    setIsTransitioning(true);
+    setTimeout(() => {
+      const result = handleNext();
+      if (result === 'review') {
+        setShowReview(true);
+      }
+      setIsTransitioning(false);
+    }, 300); // Small delay for better UX
   };
 
   const handleNavigationNext = () => {
@@ -106,6 +116,7 @@ const TestContainer = () => {
   const handleNavigationPrevious = () => {
     handlePrevious();
     setShowValidation(false);
+    setIsTransitioning(false);
   };
 
   const handleSubmit = async () => {
@@ -177,12 +188,13 @@ const TestContainer = () => {
 
       <TestHeader currentModuleData={currentModuleData} />
 
-      <Card className="medical-card animate-scale-in">
+      <Card className={`medical-card transition-all duration-300 ${isTransitioning ? 'opacity-80 scale-[0.98]' : 'animate-scale-in'}`}>
         <CardContent>
           <TestQuestion
             question={currentQuestionData}
             response={responses[currentQuestionData.id]}
             onResponse={handleResponse}
+            isTransitioning={isTransitioning}
           />
 
           <TestValidation 
@@ -197,6 +209,7 @@ const TestContainer = () => {
             onPrevious={handleNavigationPrevious}
             onNext={handleNavigationNext}
             onSaveAndExit={handleSaveAndExit}
+            showNextButton={!isTransitioning}
           />
         </CardContent>
       </Card>

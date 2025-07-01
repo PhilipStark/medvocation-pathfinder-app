@@ -9,6 +9,7 @@ interface TestNavigationProps {
   onPrevious: () => void;
   onNext: () => void;
   onSaveAndExit: () => void;
+  showNextButton?: boolean;
 }
 
 const TestNavigation = ({
@@ -17,7 +18,8 @@ const TestNavigation = ({
   isLastQuestion,
   onPrevious,
   onNext,
-  onSaveAndExit
+  onSaveAndExit,
+  showNextButton = true
 }: TestNavigationProps) => {
   return (
     <div className="flex justify-between pt-6">
@@ -38,14 +40,22 @@ const TestNavigation = ({
         </Button>
       </div>
 
-      <Button 
-        onClick={onNext}
-        disabled={!hasCurrentResponse}
-        className="medical-button transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {isLastQuestion ? "Revisar Respostas" : "Próxima"}
-        <ArrowRight className="h-4 w-4 ml-2" />
-      </Button>
+      {showNextButton && (
+        <Button 
+          onClick={onNext}
+          disabled={!hasCurrentResponse}
+          className="medical-button transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isLastQuestion ? "Revisar Respostas" : "Próxima"}
+          <ArrowRight className="h-4 w-4 ml-2" />
+        </Button>
+      )}
+      
+      {!showNextButton && (
+        <div className="text-sm text-gray-500 flex items-center">
+          Avançando automaticamente...
+        </div>
+      )}
     </div>
   );
 };

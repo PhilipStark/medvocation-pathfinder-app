@@ -8,9 +8,10 @@ interface TestQuestionProps {
   question: TestQuestionType;
   response: number | undefined;
   onResponse: (value: number) => void;
+  isTransitioning?: boolean;
 }
 
-const TestQuestion = ({ question, response, onResponse }: TestQuestionProps) => {
+const TestQuestion = ({ question, response, onResponse, isTransitioning = false }: TestQuestionProps) => {
   return (
     <div className="space-y-6">
       <h2 className="text-lg font-semibold">{question.text}</h2>
@@ -22,13 +23,27 @@ const TestQuestion = ({ question, response, onResponse }: TestQuestionProps) => 
         value={response?.toString() || ""}
         onValueChange={(value) => onResponse(parseInt(value))}
         className="space-y-4"
+        disabled={isTransitioning}
       >
         {[1, 2, 3, 4, 5].map((value) => (
-          <div key={value} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-            <RadioGroupItem value={value.toString()} id={`option-${value}`} />
+          <div 
+            key={value} 
+            className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 ${
+              isTransitioning 
+                ? 'opacity-60 cursor-not-allowed' 
+                : 'hover:bg-gray-50 cursor-pointer'
+            } ${response === value ? 'bg-blue-50 border border-blue-200' : ''}`}
+          >
+            <RadioGroupItem 
+              value={value.toString()} 
+              id={`option-${value}`}
+              disabled={isTransitioning}
+            />
             <Label 
               htmlFor={`option-${value}`} 
-              className="flex-1 cursor-pointer text-sm font-medium"
+              className={`flex-1 text-sm font-medium ${
+                isTransitioning ? 'cursor-not-allowed' : 'cursor-pointer'
+              }`}
             >
               <div className="flex items-center justify-between">
                 <span>
@@ -47,7 +62,7 @@ const TestQuestion = ({ question, response, onResponse }: TestQuestionProps) => 
 
       <div className="bg-blue-50 p-3 rounded-lg">
         <p className="text-xs text-blue-700">
-          💡 <strong>Dica:</strong> Use as teclas 1-5 para responder rapidamente ou as setas ← → para navegar
+          💡 <strong>Dica:</strong> Clique em uma resposta para avançar automaticamente, ou use as teclas 1-5 para responder rapidamente
         </p>
       </div>
     </div>
