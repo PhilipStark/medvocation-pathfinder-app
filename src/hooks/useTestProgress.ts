@@ -219,16 +219,16 @@ export const useTestProgress = () => {
         throw new Error('Failed to create or update test session');
       }
 
-      // Save the test results with new columns
+      // Save the test results
       const { data: results } = await supabase
         .from('test_results')
         .insert({
           session_id: sessionId,
           user_id: user.id,
-          specialty_scores: scores as any,
-          recommendations: null,
-          is_unlocked: false, // Default to locked
-          download_count: 0
+          responses: responses as any,
+          scores: scores as any,
+          duration_seconds: testDuration * 60,
+          is_unlocked: false
         })
         .select()
         .single();

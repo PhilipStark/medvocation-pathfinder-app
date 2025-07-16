@@ -80,7 +80,7 @@ const Results = () => {
               sessionId: data.session_id,
               userId: data.user_id,
               responses: (data.test_sessions.responses as any) || {},
-              scores: data.specialty_scores as Record<string, number>,
+              scores: data.scores as Record<string, number>,
               completedAt: data.created_at,
               testDuration: 0
             };

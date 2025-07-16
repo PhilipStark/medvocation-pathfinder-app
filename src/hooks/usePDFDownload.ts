@@ -42,21 +42,29 @@ export const usePDFDownload = () => {
 
       // Track download
       await supabase
-        .from('result_downloads')
+        .from('pdf_downloads')
         .insert({
           test_result_id: data.resultId,
           user_id: user.id,
           file_type: 'pdf'
         });
 
-      // Update download count
+      // Update download count in pdf_downloads table
+      const { data: downloadData } = await supabase
+        .from('pdf_downloads')
+        .select('download_count')
+        .eq('test_result_id', data.resultId)
+        .eq('user_id', user.id)
+        .single();
+
       await supabase
-        .from('test_results')
+        .from('pdf_downloads')
         .update({ 
-          download_count: data.downloadCount + 1,
+          download_count: (downloadData?.download_count || 0) + 1,
           pdf_generated_at: new Date().toISOString()
         })
-        .eq('session_id', sessionId);
+        .eq('test_result_id', data.resultId)
+        .eq('user_id', user.id);
 
       // Create download link
       const blob = new Blob([new Uint8Array(data.pdfData)], { type: 'application/pdf' });

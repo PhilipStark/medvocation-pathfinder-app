@@ -20,34 +20,29 @@ export const usePaymentPlans = () => {
 
   const fetchPlans = async () => {
     try {
-      const { data, error } = await supabase
-        .from('payment_plans')
-        .select('*')
-        .eq('is_active', true)
-        .order('price_cents', { ascending: true });
+      // For now, use mock data since we don't have payment_plans table yet
+      const mockPlans: PaymentPlan[] = [
+        {
+          id: 'basic',
+          name: 'Análise Básica',
+          description: 'Relatório básico com especialidades recomendadas',
+          price_cents: 1999,
+          currency: 'BRL',
+          features: ['Top 3 especialidades', 'Perfil básico', 'PDF simples'],
+          is_active: true
+        },
+        {
+          id: 'premium',
+          name: 'Análise Completa',
+          description: 'Relatório detalhado com análise de IA',
+          price_cents: 4999,
+          currency: 'BRL',
+          features: ['Análise completa', 'Recomendações de IA', 'PDF premium', 'Orientações de carreira'],
+          is_active: true
+        }
+      ];
 
-      if (error) {
-        console.error('Error fetching payment plans:', error);
-        toast({
-          title: "Erro ao carregar planos",
-          description: "Não foi possível carregar os planos de pagamento.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Transform the data to match our interface
-      const transformedPlans: PaymentPlan[] = (data || []).map(plan => ({
-        id: plan.id,
-        name: plan.name,
-        description: plan.description || '',
-        price_cents: plan.price_cents,
-        currency: plan.currency || 'BRL',
-        features: Array.isArray(plan.features) ? plan.features.filter((f): f is string => typeof f === 'string') : [],
-        is_active: plan.is_active || false
-      }));
-
-      setPlans(transformedPlans);
+      setPlans(mockPlans);
     } catch (error) {
       console.error('Error fetching payment plans:', error);
     } finally {

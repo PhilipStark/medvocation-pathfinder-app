@@ -131,6 +131,8 @@ export type Database = {
       }
       test_results: {
         Row: {
+          ai_analysis: string | null
+          analysis_generated_at: string | null
           created_at: string
           duration_seconds: number | null
           id: string
@@ -138,10 +140,13 @@ export type Database = {
           responses: Json
           scores: Json
           session_id: string | null
+          specialty_scores: Json | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          ai_analysis?: string | null
+          analysis_generated_at?: string | null
           created_at?: string
           duration_seconds?: number | null
           id?: string
@@ -149,10 +154,13 @@ export type Database = {
           responses: Json
           scores: Json
           session_id?: string | null
+          specialty_scores?: Json | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          ai_analysis?: string | null
+          analysis_generated_at?: string | null
           created_at?: string
           duration_seconds?: number | null
           id?: string
@@ -160,6 +168,7 @@ export type Database = {
           responses?: Json
           scores?: Json
           session_id?: string | null
+          specialty_scores?: Json | null
           updated_at?: string
           user_id?: string | null
         }
